@@ -1,0 +1,26 @@
+{
+  "name": "kusto",
+  "version": "1.0.0",
+  "description": "functions to work with Microsoft kusto/adx",
+  "main": "index.js",
+  "dependencies": {
+    "azure-kusto-data": "^0.3.7"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/curtwphillips/kusto.git"
+  },
+  "keywords": [
+    "kusto"
+  ],
+  "author": "curtwphillips@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/curtwphillips/kusto/issues"
+  },
+  "homepage": "https://github.com/curtwphillips/kusto#readme"
+}
