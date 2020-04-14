@@ -111,3 +111,9 @@ exports.execute = (message, raw, dbName = defaultDB) =>
       { raw }
     );
   });
+
+// removes invalid table name characters
+exports.convertToTableName = (name) => {
+  if (!name) throw new Error('Failed to determine table name. Starting name not provided.');
+  return name.replace(/[^\w\d\.-]/gi, '');
+};
