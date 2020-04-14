@@ -17,10 +17,11 @@ const kcsb = KustoConnectionStringBuilder.withAadApplicationKeyAuthentication(
 const client = (exports.client = new KustoClient(kcsb));
 
 // log a short part of a possibly large object to help with debugging
-const shortLog = (exports.shortLog = (item, length = 500) => JSON.stringify(item).slice(0, length));
+const shortLog = (exports.shortLog = (item, length = 500): string =>
+  JSON.stringify(item).slice(0, length));
 
 // make all responses use the same table, column, and row naming
-const standardizeQueryResponse = (response) => {
+const standardizeQueryResponse = (response): object => {
   // use 'tables' key for list of tables instead of sometimes using 'Tables'
   if (response.Tables) {
     response.tables = response.Tables;
@@ -91,7 +92,11 @@ const standardizeQueryResponse = (response) => {
 };
 
 // promisified adx message execution
-const execute = (exports.execute = (message, raw, dbName = defaultDB) =>
+const execute = (exports.execute = (
+  message: string,
+  raw = false,
+  dbName: string = defaultDB
+): object =>
   new Promise((resolve, reject) => {
     if (typeof message !== 'string') {
       throw new Error(`message ${JSON.stringify(message)} must be a string`);
@@ -113,13 +118,55 @@ const execute = (exports.execute = (message, raw, dbName = defaultDB) =>
   }));
 
 // removes invalid table name characters
-exports.convertToTableName = (name) => {
+exports.convertToTableName = (name): string => {
   if (!name) throw new Error('Failed to determine table name. Starting name not provided.');
   return name.replace(/[^\w\d\.-]/gi, '');
 };
 
 // removes an adx function if it exists
-exports.deleteADXFunction = async (functionName) => {
+exports.dropFunctionByName = async (functionName: string): Promise<void> => {
   const message = `.drop function ['${functionName}'] ifexists`;
   await execute(message);
+};
+
+// create a kusto table with the provided schema
+exports.createTableWithSchema = async (tableName, schema, folder): Promise<void> => {
+  let message = `.create-merge table ['${tableName}'] (${schema})`;
+
+  if (folder) {
+    message += `with (folder="${folder}")`;
+  }
+
+  await execute(message);
+};
+
+interface Column {
+  name: string;
+  ordinal: number;
+}
+
+interface Table {
+  kind: string;
+  _rows: Array<Array<string>>;
+  columns: Array<Column>;
+}
+
+interface Response {
+  tables: Array<Table>;
+}
+
+interface Json {
+  [key: string]: string;
+}
+
+// function to convert table responses to standardized JSON data
+exports.convertResponseToTable = (response: Response): Array<Json> => {
+  const table = response.tables.find((tbl) => tbl.kind === 'PrimaryResult');
+  if (!table)
+    throw new Error(`PrimaryResult table was not found in ${JSON.stringify(response.tables)}`);
+  return table._rows.map((row) => {
+    const obj = {};
+    table.columns.forEach((col) => (obj[col.name] = row[col.ordinal]));
+    return obj;
+  });
 };
