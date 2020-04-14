@@ -91,7 +91,7 @@ const standardizeQueryResponse = (response) => {
 };
 
 // promisified adx message execution
-exports.execute = (message, raw, dbName = defaultDB) =>
+const execute = (exports.execute = (message, raw, dbName = defaultDB) =>
   new Promise((resolve, reject) => {
     if (typeof message !== 'string') {
       throw new Error(`message ${JSON.stringify(message)} must be a string`);
@@ -110,10 +110,16 @@ exports.execute = (message, raw, dbName = defaultDB) =>
       },
       { raw }
     );
-  });
+  }));
 
 // removes invalid table name characters
 exports.convertToTableName = (name) => {
   if (!name) throw new Error('Failed to determine table name. Starting name not provided.');
   return name.replace(/[^\w\d\.-]/gi, '');
+};
+
+// removes an adx function if it exists
+exports.deleteADXFunction = async (functionName) => {
+  const message = `.drop function ['${functionName}'] ifexists`;
+  await execute(message);
 };
