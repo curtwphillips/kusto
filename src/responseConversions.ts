@@ -1,25 +1,8 @@
+import { Json, Response } from './interfaces';
+
 // log a short part of a possibly large object to help with debugging
 const shortLog = (exports.shortLog = (item, length = 500): string =>
   JSON.stringify(item).slice(0, length));
-
-interface Column {
-  name: string;
-  ordinal: number;
-}
-
-interface Table {
-  kind: string;
-  _rows: Array<Array<string>>;
-  columns: Array<Column>;
-}
-
-interface Response {
-  tables: Array<Table>;
-}
-
-interface Json {
-  [key: string]: string;
-}
 
 // function to convert table responses to standardized JSON data
 const standardizeTableResponse = (response: Response): Array<Json> => {
@@ -34,7 +17,7 @@ const standardizeTableResponse = (response: Response): Array<Json> => {
 };
 
 // make all responses use the same table, column, and row naming
-const standardizeQueryResponse = (response): object => {
+const standardizeQueryResponse = (response): Response => {
   // use 'tables' key for list of tables instead of sometimes using 'Tables'
   if (response.Tables) {
     response.tables = response.Tables;
